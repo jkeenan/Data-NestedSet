@@ -12,3 +12,4 @@ requires:
 meta-spec:
     url:     http://module-build.sourceforge.net/META-spec-v1.3.html
     version: 1.3
+
