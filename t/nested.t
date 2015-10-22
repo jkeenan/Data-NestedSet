@@ -27,3 +27,4 @@ ok($nodes->[0]->[-1] == 14,'root right values equals 14');
 ok($nodes->[1]->[-1] == 11,'second entry right values equals 11');
 ok($nodes->[-1]->[-1] == 13,'last entry right values equals 13');
 
+

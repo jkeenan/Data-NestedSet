@@ -8,96 +8,89 @@ use Carp;
 
 our $VERSION=1.03;
 
-	sub new {
-	    my ($class,$data,$depth_position)= @_;
+sub new {
+    my ($class,$data,$depth_position)= @_;
 
-	    croak 'An array ref must be supplied as the first argument. Seen '. ref($data) if(ref($data) ne 'ARRAY');
-	    my $nb = scalar @{$data};
+    croak 'An array ref must be supplied as the first argument. Seen '. ref($data)
+        if(ref($data) ne 'ARRAY');
+    my $nb = scalar @{$data};
 
-	    croak 'The number of items within the array ref must be >=1 . Seen '.$nb if($nb==0);
-	    croak 'An integer must be supplied as the second argument. Seen '. $depth_position if(not defined $depth_position 
- 												  || $depth_position!~m/^[0-9]+/mx);
+    croak 'The number of items within the array ref must be >=1 . Seen '.$nb if($nb==0);
+    croak 'An integer must be supplied as the second argument. Seen '. $depth_position
+        if(not defined $depth_position || $depth_position !~ m/^[0-9]+/mx);
 
 
-	    my $this    = {
-	      left_node           => 1,
-              previous_right_node => [],
-              last_depth          => 0,
-              Data_length         => $nb,
-              Max_right_node      => $nb*2,
-              depth_position      => $depth_position,
-	      data                => $data,
-            };
+    my $this    = {
+        left_node           => 1,
+        previous_right_node => [],
+        last_depth          => 0,
+        Data_length         => $nb,
+        Max_right_node      => $nb*2,
+        depth_position      => $depth_position,
+        data                => $data,
+    };
 
-	    $this->{Left}  = scalar @{$data->[0]};
-	    $this->{Right} = $this->{Left} + 1;
+    $this->{Left}  = scalar @{$data->[0]};
+    $this->{Right} = $this->{Left} + 1;
 
-	    #the first row is the root, we assign 1 to left and the maximum value possible to right
-	    $this->{data}->[0]->[$this->{Left}]  = $this->{left_node};
-	    $this->{data}->[0]->[$this->{Right}] = $this->{Max_right_node};
+    #the first row is the root, we assign 1 to left and the maximum value possible to right
+    $this->{data}->[0]->[$this->{Left}]  = $this->{left_node};
+    $this->{data}->[0]->[$this->{Right}] = $this->{Max_right_node};
 
-	    bless $this, $class;
-	    return $this;
+    bless $this, $class;
+    return $this;
 
-	}
+}
 
-	sub create_nodes {
-	    my $this = shift;
+sub create_nodes {
+    my $this = shift;
 
-	    for(my $i=1; $i<$this->{Data_length}; $i++) {
+    for(my $i=1; $i<$this->{Data_length}; $i++) {
 
-	       my $orientation = $this->{data}->[$i][$this->{depth_position}] - $this->{last_depth};
+        my $orientation = $this->{data}->[$i][$this->{depth_position}] - $this->{last_depth};
 
-              if($orientation==1) { #go down in depth
-
-	           $this->set_left_node($i);
-
-	       }
-	       elsif($orientation==0) { # same depth level
-
-		   $this->set_previous_right_node();
-	           $this->set_left_node($i);
-
-	       }
-	       else { # go back up in depth
-
-	          $this->set_previous_right_node();
-
-		  my $depth = abs $orientation;
-
-		  for(0..$depth-1) {
-		       $this->set_previous_right_node();
-	          }
-	          $this->set_left_node($i);
-             }
-
-             push @{$this->{previous_right_node}},$i;
-             $this->{last_depth}=$this->{data}->[$i]->[$this->{depth_position}];
+        if($orientation==1) { #go down in depth
+            $this->set_left_node($i);
         }
-	 $this->set_right_nodes();
-	 return $this->{data};
-     }
-
-     sub set_previous_right_node {
-	    my $this=shift;
-	    $this->{left_node}++;
-	    $this->{data}->[pop @{$this->{previous_right_node}}]->[$this->{Right}]=$this->{left_node};
-     }
-
-     sub set_left_node {
-	   my $this=shift;
-	   $this->{left_node}++;
-	   $this->{data}->[shift]->[$this->{Left}]=$this->{left_node};
-     }
-
-     sub set_right_nodes {
-	   my $this=shift;
-	   my $last_node = $this->{data}->[$this->{Data_length}-1][$this->{Left}];
-	   for(my $i=scalar(@{$this->{previous_right_node}}) -1; $i >= 0; $i--) {
-		$last_node++;
-		$this->{data}->[$this->{previous_right_node}->[$i]]->[$this->{Right}]=$last_node;
-	   }
+        elsif($orientation==0) { # same depth level
+            $this->set_previous_right_node();
+            $this->set_left_node($i);
+        }
+        else { # go back up in depth
+            $this->set_previous_right_node();
+            my $depth = abs $orientation;
+            for(0..$depth-1) {
+                 $this->set_previous_right_node();
+            }
+            $this->set_left_node($i);
+        }
+        push @{$this->{previous_right_node}},$i;
+        $this->{last_depth}=$this->{data}->[$i]->[$this->{depth_position}];
     }
+    $this->set_right_nodes();
+    return $this->{data};
+}
+
+sub set_previous_right_node {
+    my $this=shift;
+    $this->{left_node}++;
+    $this->{data}->[pop @{$this->{previous_right_node}}]->[$this->{Right}]=$this->{left_node};
+}
+
+sub set_left_node {
+    my $this=shift;
+    $this->{left_node}++;
+    $this->{data}->[shift]->[$this->{Left}]=$this->{left_node};
+}
+
+sub set_right_nodes {
+    my $this=shift;
+    my $last_node = $this->{data}->[$this->{Data_length}-1][$this->{Left}];
+    for(my $i=scalar(@{$this->{previous_right_node}}) -1; $i >= 0; $i--) {
+        $last_node++;
+        $this->{data}->[$this->{previous_right_node}->[$i]]->[$this->{Right}]=$last_node;
+    }
+}
 
 1;
 
@@ -116,34 +109,34 @@ Data::NestedSet - calculate left - right values from depth (modified preorder tr
 =head1 SYNOPSIS
 
 
-    use Data::NestedSet; 
+  use Data::NestedSet; 
 
 
-    ##let's pretend that you get that from a spreadsheet...
-    my $data = [
-           [1,'MUSIC',0],
-           [2,'M-GUITARS',1],
-           [3,'M-G-GIBSON',2],
-           [4,'M-G-G-SG',3],
-           [5,'M-G-FENDER',2],
-           [6,'M-G-F-TELECASTER',3],
-           [7,'M-PIANOS',1],
-           #go on....
-    ];
+  ##let's pretend that you get that from a spreadsheet...
+  my $data = [
+       [1,'MUSIC',0],
+       [2,'M-GUITARS',1],
+       [3,'M-G-GIBSON',2],
+       [4,'M-G-G-SG',3],
+       [5,'M-G-FENDER',2],
+       [6,'M-G-F-TELECASTER',3],
+       [7,'M-PIANOS',1],
+       #go on....
+  ];
 
-    my $nodes   = new Data::NestedSet($data,2)->create_nodes();
+  my $nodes   = new Data::NestedSet($data,2)->create_nodes();
 
-    #now $nodes contains : 
+  #now $nodes contains : 
 
-    #[
-    #       [1,'MUSIC',0,1,14],
-    #       [2,'M-GUITARS',1,2,11],
-    #       [3,'M-G-GIBSON',2,3,6],
-    #       [4,'M-G-G-SG',3,4,5],
-    #       [5,'M-G-FENDER',2,7,10],
-    #       [6,'M-G-F-TELECASTER',3,8,9],
-    #       [7,'M-PIANOS',1,12,13],
-    #];
+  #[
+  #     [1,'MUSIC',0,1,14],
+  #     [2,'M-GUITARS',1,2,11],
+  #     [3,'M-G-GIBSON',2,3,6],
+  #     [4,'M-G-G-SG',3,4,5],
+  #     [5,'M-G-FENDER',2,7,10],
+  #     [6,'M-G-F-TELECASTER',3,8,9],
+  #     [7,'M-PIANOS',1,12,13],
+  #];
 
 
 =head1 DESCRIPTION
@@ -245,25 +238,25 @@ and right values appended at the end.
 
 You did not pass an array reference to the constructor as its first argument.
 
-    my $nodes = new Data::NestedSet(@array,2);  # error
-    my $nodes = new Data::NestedSet(\@array,2); # ok
+  my $nodes = new Data::NestedSet(@array,2);  # error
+  my $nodes = new Data::NestedSet(\@array,2); # ok
 
 
 =item C<< The number of items within the array ref must be >=1 . Seen ... >>
 
 You passed an empty reference to the constructor.
 
-    my $nodes = new Data::NestedSet([],2);              # error
-    my $nodes = new Data::NestedSet([[1,'ROOT',0]],2);  # ok
+  my $nodes = new Data::NestedSet([],2);        # error
+  my $nodes = new Data::NestedSet([[1,'ROOT',0]],2);  # ok
 
 
 =item C<< An integer must be supplied as the second argument. Seen ... >>
 
 You didn't supply a proper depth's offset value within the array reference.
 
-    my $nodes = new Data::NestedSet(\@array);         # error
-    my $nodes = new Data::NestedSet(\@array,"wrong"); # error
-    my $nodes = new Data::NestedSet(\@array,2);       # ok
+  my $nodes = new Data::NestedSet(\@array);     # error
+  my $nodes = new Data::NestedSet(\@array,"wrong"); # error
+  my $nodes = new Data::NestedSet(\@array,2);     # ok
 
 =back
 

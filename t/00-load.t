@@ -7,3 +7,4 @@ BEGIN {
 }
 
 diag( "Testing Data::NestedSet $Data::NestedSet::VERSION, Perl $], $^X" );
+
