@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More qw(no_plan); # tests => 5;
 
 use Data::NestedSet;
 
@@ -18,6 +18,44 @@ my $data = [
        [6,'M-G-F-TELECASTER',3],
        [7,'M-PIANOS',1]
 ];
+
+{
+    local $@;
+    eval { my $obj = Data::NestedSet->new({ foo => 'bar'}); };
+    like($@,
+        qr/An array ref must be supplied as the first argument/,
+        "Got expected error message for non-array-ref argument to new()"
+    );
+}
+
+{
+    local $@;
+    eval { my $obj = Data::NestedSet->new([]); };
+    like($@,
+        qr/The number of items within the array ref must be >=1/,
+        "Got expected error message for empty array ref argument to new()"
+    );
+}
+
+#    croak 'An integer must be supplied as the second argument. Seen '. $depth_position
+#        if(not defined $depth_position || $depth_position !~ m/^[0-9]+/mx);
+{
+    local $@;
+    eval { my $obj = Data::NestedSet->new($data); };
+    like($@,
+        qr/An integer must be supplied as the second argument/,
+        "Got expected error message for undefined depth position"
+    );
+}
+
+#{
+#    local $@;
+#    eval { my $obj = Data::NestedSet->new($data, 'foo'); };
+#    like($@,
+#        qr/An integer must be supplied as the second argument/,
+#        "Got expected error message for non-integer depth position"
+#    );
+#}
 
 my $nodes   = new Data::NestedSet($data,2)->create_nodes();
 

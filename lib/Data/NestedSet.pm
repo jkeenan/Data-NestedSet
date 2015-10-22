@@ -11,13 +11,15 @@ our $VERSION=1.03;
 sub new {
     my ($class,$data,$depth_position)= @_;
 
+    $depth_position = (defined($depth_position)) ? $depth_position : '';
     croak 'An array ref must be supplied as the first argument. Seen '. ref($data)
         if(ref($data) ne 'ARRAY');
     my $nb = scalar @{$data};
 
     croak 'The number of items within the array ref must be >=1 . Seen '.$nb if($nb==0);
-    croak 'An integer must be supplied as the second argument. Seen '. $depth_position
-        if(not defined $depth_position || $depth_position !~ m/^[0-9]+/mx);
+#    croak 'An integer must be supplied as the second argument. Seen '. $depth_position
+    croak 'An integer must be supplied as the second argument'
+        if(not length($depth_position) || $depth_position !~ m/^[0-9]+/mx);
 
 
     my $this    = {
