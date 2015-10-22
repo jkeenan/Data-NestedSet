@@ -16,4 +16,3 @@ name: Data-NestedSet
 requires:
   Test::More: '0'
 version: '1.03'
-

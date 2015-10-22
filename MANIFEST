@@ -1,9 +1,8 @@
 Changes
-MANIFEST
-META.yml # Will be created by "make dist"
-Makefile.PL
-README
 lib/Data/NestedSet.pm
+Makefile.PL
+MANIFEST
+META.yml			# Will be created by "make dist"
+README
 t/00-load.t
 t/nested.t
-
